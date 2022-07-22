@@ -15,17 +15,16 @@ mod solver;
 use std::io::stdin;
 
 fn main() {
-    let mut obj = String::new();
-    stdin().read_line(&mut obj).unwrap();
-    obj = obj.trim().to_string();
+  let mut obj = String::new();
+  stdin().read_line(&mut obj).unwrap();
+  obj = obj.trim().to_string();
 
-    let tree = EvalNatExp{obj}.solve();
-    if let Some(n) = tree {
-        println!("{}", n);
-    }else{
-        println!("");
-
-    }
+  let tree = EvalNatExp{obj}.solve();
+  if let Some(n) = tree {
+    println!("{}", n);
+  }else{
+    println!("");
+  }
 }
 
 
