@@ -1,4 +1,4 @@
-use super::{nat, compare_nat1, compare_nat2, compare_nat3, evalnatexp};
+use super::{nat, compare_nat1, compare_nat2, compare_nat3, evalnatexp, reducenatexp};
 use regex::Regex;
 use std::fmt::{self, Display, Formatter};
 
@@ -9,6 +9,7 @@ pub enum Object {
   CompareNat2(compare_nat2::Rule),
   CompareNat3(compare_nat3::Rule),
   EvalNatExp(evalnatexp::Rule),
+  ReduceNatExp(reducenatexp::Rule),
 }
 
 impl Display for Object {
@@ -19,6 +20,7 @@ impl Display for Object {
       Self::CompareNat2(c) => write!(f, "{}", c),
       Self::CompareNat3(c) => write!(f, "{}", c),
       Self::EvalNatExp(c) => write!(f, "{}", c),
+      Self::ReduceNatExp(c) => write!(f, "{}", c),
       _ => panic!("not implemented: {:?}", self)
     }
   }
