@@ -21,24 +21,9 @@ impl Display for Rule {
 }
 
 impl CompareNat2 {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
-  }
-
-  fn get_nat(&self, arg: &str) -> usize {
-    if let Some(c) = Regex::new(r"S\((.*)\)").unwrap().captures_iter(arg).next() {
-      self.get_nat(&c[1]) + 1
-    }else{
-      0
-    }
-  }
-
-  fn get_string(&self, num: usize) -> String {
-    if num == 0 {
-      String::from("Z")
-    }else{
-      format!("S({})", self.get_string(num-1))
-    }
   }
 }
 
@@ -47,7 +32,7 @@ impl Solver for CompareNat2 {
     let mut v = None;
     let mut state = false;
 
-    if let Some(cap) = self.get_regex(Object::CompareNat2(Rule::LZero)).captures_iter(&self.obj).next() {
+    if let Some(_) = self.get_regex(Object::CompareNat2(Rule::LZero)).captures_iter(&self.obj).next() {
       v = Some(RuleTree{
         obj: Object::CompareNat2(Rule::LZero),
         val: self.obj.clone(),

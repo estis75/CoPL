@@ -21,24 +21,9 @@ impl Display for Rule {
 }
 
 impl CompareNat3 {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
-  }
-
-  fn get_nat(&self, arg: &str) -> usize {
-    if let Some(c) = Regex::new(r"S\((.*)\)").unwrap().captures_iter(arg).next() {
-      self.get_nat(&c[1]) + 1
-    }else{
-      0
-    }
-  }
-
-  fn get_string(&self, num: usize) -> String {
-    if num == 0 {
-      String::from("Z")
-    }else{
-      format!("S({})", self.get_string(num-1))
-    }
   }
 }
 

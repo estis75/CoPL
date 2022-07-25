@@ -27,7 +27,6 @@ pub enum Rule{
   MRZero,
   MRMulti,
   MROne,
-  EParen,
   PSucc,
   PZero,
   TSucc,
@@ -51,7 +50,6 @@ impl Display for Rule {
       Self::MRZero => write!(f, "MR-Zero"),
       Self::MRMulti => write!(f, "MR-Multi"),
       Self::MROne => write!(f, "MR-One"),
-      Self::EParen => write!(f, "E-Paren"),
       Self::PZero => write!(f, "P-Zero"),
       Self::PSucc => write!(f, "P-Succ"),
       Self::TZero => write!(f, "T-Zero"),
@@ -61,6 +59,7 @@ impl Display for Rule {
 }
 
 impl ReduceNatExp {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
   }
@@ -84,60 +83,6 @@ impl ReduceNatExp {
       String::from("Z")
     }else{
       format!("S({})", self.get_string(num-1))
-    }
-  }
-
-  fn get_val(&self, e: &str) -> Option<usize> {
-    // dbg!(e);
-    if let Some(c) = Regex::new(r"(.*) \* (.*)").unwrap().captures_iter(e).next() {
-      if let Some(lhs) = self.get_val(&c[1]) {
-        if let Some(rhs) = self.get_val(&c[2]) {
-          Some(lhs * rhs)
-        }else{
-          None
-        }
-      }else{
-        None
-      }
-    }else if let Some(c) = Regex::new(r"[^S]\((.*)\)|^\((.*)\)").unwrap().captures_iter(e).next() {
-      if let Some(c) = c.get(1) {
-        self.get_val(&c.as_str())
-      }else if let Some(c) = c.get(2){
-        self.get_val(&c.as_str())
-      }else{
-        panic!("why does it match?");
-      }
-    }else if let Some(c) = Regex::new(r"(.*) \+ (.*)").unwrap().captures_iter(e).next() {
-      if let Some(lhs) = self.get_val(&c[1]) {
-        if let Some(rhs) = self.get_val(&c[2]) {
-          Some(lhs + rhs)
-        }else{
-          None
-        }
-      }else{
-        None
-      }
-    }else{
-      self.get_nat(e)
-    }
-  }
-
-  fn is_parend_exp(&self, exp: String) -> String {
-    if let Some(cap) = self.get_regex(Object::ReduceNatExp(Rule::EParen)).captures_iter(&exp).next() {
-      if let Some(node) = self.get_val(&cap[1]) {
-        let val = self.get_string(node);
-        let tp_val = format!("{} evalto {}", &cap[1], &val);
-        let tp = ReduceNatExp{obj: tp_val}.solver();
-        if let Some(_) = tp {
-          format!("{} evalto {}", &cap[1], &val)
-        }else{
-          exp
-        }
-      }else{
-        exp
-      }
-    }else{
-      exp
     }
   }
 
@@ -435,7 +380,7 @@ impl ReduceNatExp {
   fn get_tree_mrmulti(&self) -> (Option<RuleTree>, bool) {
     let mut v = None;
     let mut state = false;
-    if let Some(cap) = self.get_regex(Object::ReduceNatExp(Rule::MRMulti)).captures_iter(&self.obj).next() {
+    if let Some(_) = self.get_regex(Object::ReduceNatExp(Rule::MRMulti)).captures_iter(&self.obj).next() {
       v = Some(RuleTree{
         obj: Object::ReduceNatExp(Rule::MRMulti),
         val: self.obj.clone(),
@@ -597,7 +542,6 @@ impl Solver for ReduceNatExp {
         Rule::MRZero => Regex::new(r"(.*) -\*-> (.*)").unwrap(),
         Rule::MRMulti => Regex::new(r"(.*) -\*-> (.*)").unwrap(),
         Rule::MROne => Regex::new(r"(.*) -\*-> (.*)").unwrap(),
-        Rule::EParen => Regex::new(r"^\((.*)\) -.-> (.*)").unwrap(),
         Rule::PZero => Regex::new(r"Z plus (.*) is (.*)").unwrap(),
         Rule::PSucc => Regex::new(r"S\((.*)\) plus (.*) is S\((.*)\)").unwrap(),
         Rule::TZero => Regex::new(r"Z times (.*) is Z").unwrap(),

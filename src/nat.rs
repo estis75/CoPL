@@ -25,6 +25,7 @@ impl Display for Rule {
 }
 
 impl Nat {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
   }
@@ -81,7 +82,7 @@ impl Solver for Nat {
       state = true;
     }
 
-    if let Some(cap) = self.get_regex(Object::Nat(Rule::TZero)).captures_iter(&self.obj).next() {
+    if let Some(_) = self.get_regex(Object::Nat(Rule::TZero)).captures_iter(&self.obj).next() {
       v = Some(RuleTree{
         obj: Object::Nat(Rule::TZero),
         val: self.obj.clone(),

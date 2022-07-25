@@ -33,6 +33,7 @@ impl Display for Rule {
 }
 
 impl EvalNatExp {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
   }
