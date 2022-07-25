@@ -87,6 +87,7 @@ impl Display for Rule {
 }
 
 impl EvalML1Err {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
   }
