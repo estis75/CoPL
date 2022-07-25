@@ -14,10 +14,13 @@ use compare_nat3::CompareNat3;
 mod evalnatexp;
 #[allow(unused)]
 use evalnatexp::EvalNatExp;
-
 mod reducenatexp;
 #[allow(unused)]
 use reducenatexp::ReduceNatExp;
+
+mod evalml1;
+#[allow(unused)]
+use evalml1::EvalML1;
 
 mod solver;
 use std::io::stdin;
@@ -27,7 +30,7 @@ fn main() {
   stdin().read_line(&mut obj).unwrap();
   obj = obj.trim().to_string();
 
-  let tree = ReduceNatExp{obj: obj.clone()}.solve();
+  let tree = EvalML1{obj: obj.clone()}.solve();
   if let Some(n) = tree {
     println!("{}", n);
   }else{
