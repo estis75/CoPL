@@ -77,7 +77,7 @@ impl EvalML1 {
           let i2 = i2.ok().unwrap();
           if i1 == i2 {
             v = Some(RuleTree{
-              obj: Object::EvalML1(Rule::BLt),
+              obj: Object::EvalML1(Rule::EBool),
               val: format!("{} evalto {}", i1, i2),
               node: None
             });
