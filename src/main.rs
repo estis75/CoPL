@@ -44,6 +44,7 @@ fn main() {
 }
 
 
+#[allow(unused)]
 fn test_for_nat() {
     let n = Nat{obj: String::from("Z plus Z is Z")};
     println!("{:?}", n.solve());
