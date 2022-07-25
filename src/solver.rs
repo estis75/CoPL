@@ -3,6 +3,7 @@ use super::{
   compare_nat1, compare_nat2, compare_nat3, 
   evalnatexp, reducenatexp, 
   evalml1, evalml1err,
+  evalml2, 
 };
 use regex::Regex;
 use std::fmt::{self, Display, Formatter};
@@ -17,6 +18,7 @@ pub enum Object {
   ReduceNatExp(reducenatexp::Rule),
   EvalML1(evalml1::Rule),
   EvalML1Err(evalml1err::Rule),
+  EvalML2(evalml2::Rule),
 }
 
 impl Display for Object {
@@ -30,6 +32,7 @@ impl Display for Object {
       Self::ReduceNatExp(c) => write!(f, "{}", c),
       Self::EvalML1(c) => write!(f, "{}", c),
       Self::EvalML1Err(c) => write!(f, "{}", c),
+      Self::EvalML2(c) => write!(f, "{}", c),
     }
   }
 }
