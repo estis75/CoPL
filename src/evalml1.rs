@@ -2,6 +2,7 @@ use super::solver::{Solver, RuleTree, Object};
 use regex::Regex;
 use std::fmt::{self, Display, Formatter};
 mod derivation;
+#[allow(unused)]
 use derivation::*;
 
 pub struct EvalML1 {
@@ -14,7 +15,6 @@ pub enum Rule{
   EBool,
   EIfT,
   EIfF,
-  EParen,
   EPlus,
   EMinus,
   ETimes,
@@ -31,7 +31,6 @@ impl Display for Rule {
       Self::EBool => write!(f, "E-Bool"),
       Self::EIfT => write!(f, "E-IfT"),
       Self::EIfF => write!(f, "E-IfF"),
-      Self::EParen => write!(f, "E-Paren"),
       Self::EPlus => write!(f, "E-Plus"),
       Self::EMinus => write!(f, "E-Minus"),
       Self::ETimes => write!(f, "E-Times"),
@@ -45,6 +44,7 @@ impl Display for Rule {
 }
 
 impl EvalML1 {
+  #[allow(unused)]
   pub fn solve(&self) -> Option<RuleTree> {
     self.solver()
   }
@@ -87,7 +87,6 @@ impl Solver for EvalML1 {
         Rule::EBool => Regex::new(r"(.*) evalto (.*)").unwrap(),
         Rule::EIfT => Regex::new(r"^if (.*) then (.*) else (.*) evalto (.*)").unwrap(),
         Rule::EIfF => Regex::new(r"^if (.*) then (.*) else (.*) evalto (.*)").unwrap(),
-        Rule::EParen => Regex::new(r"\((.*)\) evalto (.*)").unwrap(),
         Rule::EPlus => Regex::new(r"(.*) \+ (.*) evalto (.*)").unwrap(),
         Rule::EMinus => Regex::new(r"(.*) - (.*) evalto (.*)").unwrap(),
         Rule::ETimes => Regex::new(r"(.*) \* (.*) evalto (.*)").unwrap(),

@@ -19,7 +19,6 @@ mod reducenatexp;
 #[allow(unused)]
 use reducenatexp::ReduceNatExp;
 
-#[allow(unused)]
 mod evalml1;
 #[allow(unused)]
 use evalml1::EvalML1;

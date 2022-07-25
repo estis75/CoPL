@@ -17,10 +17,6 @@ impl EvalML1 {
     }
   }
 
-  fn is_value(&self, val: String) -> bool {
-    self.parse_int(val.clone()).is_ok() || self.parse_bool(val).is_ok()
-  }
-
   fn unwrap_if_parened(&self, exp: String) -> String {
     if let Some(cap) = Regex::new(r"^\((.*)\)$").unwrap().captures_iter(&exp).next() {
       format!("{}", &cap[1])
