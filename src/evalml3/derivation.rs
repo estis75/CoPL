@@ -8,6 +8,7 @@ use std::fmt::{self, Display, Formatter};
 pub enum Value {
   Int(i64),
   Bool(bool),
+  Function((Vec<(String, Value)>, String, String)),
 }
 
 impl Display for Value {
@@ -15,6 +16,19 @@ impl Display for Value {
     match self {
       Value::Bool(b) => write!(f, "{}", if *b {"true"} else {"false"}),
       Value::Int(n) => write!(f, "{}", n),
+      Value::Function(fnc) => write!(f, "({})[fun {} -> {}]", (|f: &Vec<(String, Value)>|{
+        let mut mpiter = f.into_iter();
+        let head_of_head = mpiter.next();
+        if head_of_head == None {
+          String::from("")
+        }else{
+          let head_of_head = head_of_head.unwrap();
+          let head = mpiter.into_iter()
+            .map(|(key, value)| format!("{} = {}", key, value))
+            .fold(format!("{} = {}", head_of_head.0, head_of_head.1), |lhs, rhs| lhs + ", " + &rhs);
+          head
+        }
+      })(&fnc.0), fnc.1, fnc.2),
     }
   }
 
@@ -38,17 +52,20 @@ impl EvalML3 {
   pub fn parse_value(&self, val: String) -> Result<Value, String> {
     let intvalue = self.parse_int(val.clone());
     let boolvalue = self.parse_bool(val.clone());
+    let function = self.parse_func(&val.clone());
     if intvalue.is_ok() {
       Ok(Value::Int(intvalue.ok().unwrap()))
-    }else if self.parse_bool(val).is_ok() {
+    }else if boolvalue.is_ok() {
       Ok(Value::Bool(boolvalue.ok().unwrap()))
+    }else if function.is_ok() {
+      Ok(Value::Function(function.ok().unwrap()))
     }else{
       Err(String::from("this is not value"))
     }
   }
 
-  pub fn parse_func (&self, val: &str) -> Result<(Vec<(String, Value)>, String, String), ()> {
-    let reg = Regex::new(r"\((.*)\)\[(.*) -> (.*)\]").unwrap();
+  pub fn parse_func(&self, val: &str) -> Result<(Vec<(String, Value)>, String, String), ()> {
+    let reg = Regex::new(r"\((.*)\)\[fun (.*) -> (.*)\]").unwrap();
     let ret = if let Some(cap) = reg.captures_iter(val).next() {
       Ok((self.get_env(cap[1].to_string()), cap[2].trim().to_string(), cap[3].to_string()))
     }else{
@@ -58,7 +75,7 @@ impl EvalML3 {
   }
 
   fn is_value(&self, val: String) -> bool {
-    self.parse_int(val.clone()).is_ok() || self.parse_bool(val).is_ok()
+    self.parse_int(val.clone()).is_ok() || self.parse_bool(val.clone()).is_ok() || self.parse_func(&val).is_ok()
   }
 
   fn is_function(&self, val: &str) -> bool {
@@ -74,12 +91,15 @@ impl EvalML3 {
     }else if rhs == None {
       Err(())
     }else{
+      let rhs = decr.fold(rhs.unwrap().to_string(), |lhs, rhs| lhs + " = " + rhs);
       let lhs = lhs.unwrap().to_string().trim().to_string();
-      let rhs = rhs.unwrap().to_string().trim().to_string();
+      let rhs = rhs.trim().to_string();
       if let Ok(num) = self.parse_int(rhs.clone()) {
         Ok(Some((lhs, Value::Int(num))))
-      }else if let Ok(num) = self.parse_bool(rhs) {
+      }else if let Ok(num) = self.parse_bool(rhs.clone()) {
         Ok(Some((lhs, Value::Bool(num))))
+      }else if let Ok(num) = self.parse_func(&rhs) {
+        Ok(Some((lhs, Value::Function(num))))
       }else{
         Err(())
       }
@@ -161,7 +181,7 @@ impl EvalML3 {
           if i1 == i2 {
             v = Some(RuleTree{
               obj: Object::EvalML3(Rule::EInt),
-              val: format!("{} |- {} evalto {}", &cap[1], i1, i2),
+              val: format!("{} |- {} evalto {}", &cap[1].trim(), i1, i2),
               node: None
             });
             state = true;
@@ -208,9 +228,11 @@ impl EvalML3 {
     let mut state = false;
     if let Some(cap) = self.get_regex(OBJ).captures_iter(&self.obj).next() {
       let env = self.get_env(cap[1].to_string());
+      dbg!(&cap, &env);
       if let Some((x, val)) = env.last() {
-        if x == &cap[2] {
-          if &cap[3] == "?" {
+        dbg!(&x, &cap);
+        if x == &cap[2].trim() {
+          if cap[3].trim() == "?" {
             v = Some(RuleTree{
               obj: OBJ,
               val: format!("{} |- {} evalto {}", self.format_vectored_env(env.clone()), x, val),
@@ -218,7 +240,7 @@ impl EvalML3 {
             });
             state = true;
           }else{
-            let lhs = self.parse_value(cap[3].to_string());
+            let lhs = self.parse_value(cap[3].trim().to_string());
             if lhs.is_ok() && &lhs.ok().unwrap() == val {
               v = Some(RuleTree{
                 obj: OBJ,
@@ -262,7 +284,7 @@ impl EvalML3 {
                   let val = val.ok().unwrap();
                   v = Some(RuleTree{
                     obj: OBJ,
-                    val: format!("{} |- {} evalto {}", &cap[1], &cap[2], val),
+                    val: format!("{} |- {} evalto {}", &cap[1].trim(), cap[2].to_string(), val),
                     node: Some(tp)
                   });
                   state = true;
@@ -389,7 +411,11 @@ impl EvalML3 {
       };
       // dbg!(&parsed0, &after_in);
 
-      let val = format!("{} |- {} evalto ?", &cap[1], parsed0);
+      let val = if cap[1].len() == 0 {
+        format!("|- {} evalto ?", parsed0)
+      }else{
+        format!("{} |- {} evalto ?", &cap[1].trim(), parsed0)
+      };
       let c = EvalML3{obj: val}.solver();
       if let Some(c) = c {
         tp.push(c.clone());
@@ -399,13 +425,12 @@ impl EvalML3 {
             let val = if &cap[1].to_string().trim().to_string() == "" {
               format!("{} = {} |- {} evalto {}", &cap[2], v1.ok().unwrap(), after_in, &cap[5])
             }else{
-              format!("{}, {} = {} |- {} evalto {}", &cap[1], &cap[2], v1.ok().unwrap(), after_in, &cap[5])
+              format!("{}, {} = {} |- {} evalto {}", &cap[1].trim(), &cap[2], v1.ok().unwrap(), after_in, &cap[5])
             };
             let c = EvalML3{obj: val}.solver();
             if let Some(c) = c {
               tp.push(c.clone());
               if let Some(tmpc) = Regex::new(r".* evalto (.*)").unwrap().captures_iter(&c.val).next() {
-                dbg!(&tmpc, &cap);
                 let val = if cap[5].to_string() == String::from("?") {
                   tmpc[1].to_string()
                 }else if self.is_function(&cap[5]) && self.is_function(&tmpc[1]) {
@@ -425,7 +450,7 @@ impl EvalML3 {
                 if tmpc[1].to_string() == val {
                   v = Some(RuleTree{
                     obj: OBJ,
-                    val: format!("{} |- let {} = {} in {} evalto {}", &cap[1], &cap[2], &cap[3], &cap[4], val),
+                    val: format!("{} |- let {} = {} in {} evalto {}", &cap[1].trim(), &cap[2], &cap[3], &cap[4], val),
                     node: Some(tp)
                   });
                   state = true;
@@ -445,12 +470,12 @@ impl EvalML3 {
     if let Some(cap) = self.get_regex(Object::EvalML3(Rule::EPlus)).captures_iter(&self.obj).next() {
       let mut tp = Vec::with_capacity(3);
 
-      let val = format!("{} |- {} evalto ?", &cap[1], self.unwrap_if_parened(cap[2].to_string()));
+      let val = format!("{} |- {} evalto ?", &cap[1].trim(), self.unwrap_if_parened(cap[2].to_string()));
       let c = EvalML3{obj: val}.solver();
       if let Some(lhs) = c {
         tp.push(lhs.clone());
         if let Some(lhs) = Regex::new(r".* evalto (.*)").unwrap().captures_iter(&lhs.val).next() {
-          let val = format!("{} |- {} evalto ?", &cap[1], self.unwrap_if_parened(cap[3].to_string()));
+          let val = format!("{} |- {} evalto ?", &cap[1].trim(), self.unwrap_if_parened(cap[3].to_string()));
           let c = EvalML3{obj: val}.solver();
           if let Some(rhs) = c {
             tp.push(rhs.clone());
@@ -479,7 +504,7 @@ impl EvalML3 {
 
                     v = Some(RuleTree{
                       obj: Object::EvalML3(Rule::EPlus),
-                      val: format!("{} |- {} + {} evalto {}", &cap[1], &cap[2], &cap[3], val),
+                      val: format!("{} |- {} + {} evalto {}", &cap[1].trim(), &cap[2], &cap[3], val),
                       node: Some(tp)
                     });
                     state = true;
@@ -580,7 +605,7 @@ impl EvalML3 {
 
                     v = Some(RuleTree{
                       obj: Object::EvalML3(Rule::ETimes),
-                      val: format!("{} |- {} * {} evalto {}", &cap[1], &cap[2], &cap[3], val),
+                      val: format!("{} |- {} * {} evalto {}", &cap[1].trim(), &cap[2], &cap[3], val),
                       node: Some(tp)
                     });
                     state = true;
