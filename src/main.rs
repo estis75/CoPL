@@ -25,10 +25,11 @@ use evalml1::EvalML1;
 mod evalml1err;
 #[allow(unused)]
 use evalml1err::EvalML1Err;
-
 mod evalml2;
 #[allow(unused)]
 use evalml2::EvalML2;
+mod evalml3;
+use evalml3::EvalML3;
 
 mod solver;
 use std::io::stdin;
@@ -38,7 +39,7 @@ fn main() {
   stdin().read_line(&mut obj).unwrap();
   obj = obj.trim().to_string();
 
-  let tree = EvalML2{obj: obj.clone()}.solve();
+  let tree = EvalML3{obj: obj.clone()}.solve();
   if let Some(n) = tree {
     println!("{}", n);
   }else{
