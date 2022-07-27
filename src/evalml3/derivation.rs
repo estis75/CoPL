@@ -65,9 +65,9 @@ impl EvalML3 {
   }
 
   pub fn parse_func(&self, val: &str) -> Result<(Vec<(String, Value)>, String, String), ()> {
-    let reg = Regex::new(r"\((.*)\)\[fun (.*) -> (.*)\]").unwrap();
+    let reg = Regex::new(r"\((.*)\)\[fun (.*?) -> (.*)\]").unwrap();
     let ret = if let Some(cap) = reg.captures_iter(val).next() {
-      Ok((self.get_env(cap[1].to_string()), cap[2].trim().to_string(), cap[3].to_string()))
+      Ok((self.get_env(cap[1].to_string()), cap[2].trim().to_string(), self.unwrap_if_parened(cap[3].to_string())))
     }else{
       Err(())
     };
@@ -111,14 +111,40 @@ impl EvalML3 {
   // のように与えてほしい
   //
   pub fn get_env(&self, val: String) -> Vec<(String, Value)> {
+
+    let mut input_iter = val.chars().peekable();
     let mut ret = Vec::new();
-    for e in val.split(",") {
-      if let Ok(c) = self.parse_assign(e) {
+
+    while let Some(_) = input_iter.peek() {
+      let mut statement = String::new();
+      let mut parens = 0;
+      let mut sqbracket = 0;
+      while let Some(c) = input_iter.next() {
+        if c == '(' {
+          parens += 1;
+          statement.push(c);
+        }else if c == ')'{
+          parens -= 1;
+          statement.push(c);
+        }else if c == '[' {
+          sqbracket += 1;
+          statement.push(c);
+        }else if c == ']'{
+          sqbracket -= 1;
+          statement.push(c);
+        }else if parens == 0 && sqbracket == 0 && c == ',' {
+          break;
+        }else{
+          statement.push(c);
+        }
+      }
+      if let Ok(c) = self.parse_assign(&statement) {
         if let Some((lhs, rhs)) = c {
           ret.push((lhs, rhs));
         }
       }
     }
+
     ret
   }
 
@@ -228,9 +254,7 @@ impl EvalML3 {
     let mut state = false;
     if let Some(cap) = self.get_regex(OBJ).captures_iter(&self.obj).next() {
       let env = self.get_env(cap[1].to_string());
-      dbg!(&cap, &env);
       if let Some((x, val)) = env.last() {
-        dbg!(&x, &cap);
         if x == &cap[2].trim() {
           if cap[3].trim() == "?" {
             v = Some(RuleTree{
@@ -377,7 +401,6 @@ impl EvalML3 {
     let mut v = None;
     let mut state = false;
     if let Some(cap) = self.get_regex(OBJ).captures_iter(&self.obj).next() {
-      // dbg!(&cap);
       let mut tp = Vec::with_capacity(3);
 
       fn iflet_parser(sent: &str) -> (String, String) {

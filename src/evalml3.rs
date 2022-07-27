@@ -176,7 +176,7 @@ impl Solver for EvalML3 {
         Rule::EVar1 => Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
         Rule::EVar2 => Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
         Rule::EFun =>  Regex::new(r"(.*)\|- fun (.*?) -> (.*) evalto (.*)").unwrap(),
-        Rule::EApp =>  Regex::new(r"(.*)\|- (.*?) (.*) evalto (.*)").unwrap(),
+        Rule::EApp =>  Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
         Rule::EIfT => Regex::new(r"(.*)\|- if (.*) then (.*) else (.*) evalto (.*)").unwrap(),
         Rule::EIfF => Regex::new(r"(.*)\|- if (.*) then (.*) else (.*) evalto (.*)").unwrap(),
         Rule::EPlus => Regex::new(r"(.*)\|- (.*) \+ (.*) evalto (.*)").unwrap(),

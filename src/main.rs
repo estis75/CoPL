@@ -34,11 +34,22 @@ use evalml3::EvalML3;
 mod solver;
 use std::io::stdin;
 
-fn main() {
-  let mut obj = String::new();
-  stdin().read_line(&mut obj).unwrap();
-  obj = obj.trim().to_string();
+use std::io::BufRead;
 
+fn main() {
+  let stdin = stdin().lock();
+  let mut obj = String::new();
+  for rhs in stdin.lines() {
+    let rhs = rhs.ok().unwrap();
+    let rhs = rhs.trim();
+    if rhs.len() == 0 {
+      break;
+    }else{
+      obj = obj + " " + &rhs;
+    }
+  }
+
+  let obj = obj.trim().to_string();
   let tree = EvalML3{obj: obj.clone()}.solve();
   if let Some(n) = tree {
     println!("{}", n);
