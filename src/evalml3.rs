@@ -23,6 +23,8 @@ pub enum Rule{
   EVar2,
   EFun,
   EApp,
+  ELetRec,
+  EAppRec,
   EIfT,
   EIfF,
   EPlus,
@@ -62,6 +64,8 @@ impl Display for Rule {
       Self::EBool => write!(f, "E-Bool"),
       Self::EFun => write!(f, "E-Fun"),
       Self::EApp => write!(f, "E-App"),
+      Self::ELetRec => write!(f, "E-LetRec"),
+      Self::EAppRec => write!(f, "E-AppRec"),
       Self::EIfT => write!(f, "E-IfT"),
       Self::EIfF => write!(f, "E-IfF"),
       Self::EPlus => write!(f, "E-Plus"),
@@ -118,6 +122,8 @@ impl Solver for EvalML3 {
     if !state { (v, state) = self.get_tree_elet(); }
     if !state { (v, state) = self.get_tree_efun(); }
     if !state { (v, state) = self.get_tree_eapp(); }
+    if !state { (v, state) = self.get_tree_eletrec(); }
+    if !state { (v, state) = self.get_tree_eapprec(); }
 
     if !state { (v, state) = self.get_tree_eift(); }
     if !state { (v, state) = self.get_tree_eiff(); }
@@ -176,7 +182,9 @@ impl Solver for EvalML3 {
         Rule::EVar1 => Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
         Rule::EVar2 => Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
         Rule::EFun =>  Regex::new(r"(.*)\|- fun (.*?) -> (.*) evalto (.*)").unwrap(),
+        Rule::ELetRec =>  Regex::new(r"(.*)\|- let rec (.*?) = fun (.*?) -> (.*) in (.*) evalto (.*)").unwrap(),
         Rule::EApp =>  Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
+        Rule::EAppRec =>  Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
         Rule::EIfT => Regex::new(r"(.*)\|- if (.*) then (.*) else (.*) evalto (.*)").unwrap(),
         Rule::EIfF => Regex::new(r"(.*)\|- if (.*) then (.*) else (.*) evalto (.*)").unwrap(),
         Rule::EPlus => Regex::new(r"(.*)\|- (.*) \+ (.*) evalto (.*)").unwrap(),
