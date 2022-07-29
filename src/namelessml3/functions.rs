@@ -59,7 +59,7 @@ impl NamelessML3 {
         tp.push(lhs.clone());
         v = Some(RuleTree{
           obj: OBJ,
-          val: format!("{} |- fun {} -> {} evalto fun . -> {}", self.format_vectored_env(&env), &cap[2], &cap[3], &cap[4]),
+          val: format!("{} |- fun {} -> {} ==> fun . -> {}", self.format_vectored_env(&original_env), &cap[2], &cap[3], &cap[4]),
           node: Some(tp),
         });
         state = true;
@@ -68,7 +68,7 @@ impl NamelessML3 {
     (v, state)
   }
 
-  // Rule::EApp =>  Regex::new(r"(.*)\|- (.*) evalto (.*)").unwrap(),
+  // Rule::EApp =>  Regex::new(r"(.*)\|- (.*) ==> (.*)").unwrap(),
   pub fn get_tree_trapp(&self) -> (Option<RuleTree>, bool) {
     const OBJ: Object = Object::NamelessML3(Rule::TrApp);
     let mut v = None;
@@ -88,15 +88,15 @@ impl NamelessML3 {
           let rtop_tokens = tokens[0..tokens.len()-1].into_iter().fold(String::new(), |lhs, rhs| lhs + " " + rhs);
           let rtops = rtop_tokens.trim();
 
-          let val = format!("{} |- {} evalto {}", &self.format_vectored_env(&env), self.unwrap_if_parened(ltops.to_string()), self.unwrap_if_parened(rtops.to_string()));
+          let val = format!("{} |- {} ==> {}", &self.format_vectored_env(&env), self.unwrap_if_parened(ltops.to_string()), self.unwrap_if_parened(rtops.to_string()));
           let c = NamelessML3{obj: val}.solver();
           if let Some(c) = c {
             tp.push(c.clone());
-            let val = format!("{} |- {} evalto {}", &self.format_vectored_env(&env), self.unwrap_if_parened(lbottom_token.to_string()), self.unwrap_if_parened(rbottom_token.to_string()));
+            let val = format!("{} |- {} ==> {}", &self.format_vectored_env(&env), self.unwrap_if_parened(lbottom_token.to_string()), self.unwrap_if_parened(rbottom_token.to_string()));
             let c = NamelessML3{obj: val}.solver();
             if let Some(c) = c {
               tp.push(c.clone());
-              let val = format!("{} |- {} evalto {}", &self.format_vectored_env(&env), &cap[2].trim(), &cap[3]);
+              let val = format!("{} |- {} ==> {}", &self.format_vectored_env(&env), &cap[2].trim(), &cap[3]);
               v = Some(RuleTree{
                 obj: OBJ,
                 val,
@@ -111,7 +111,7 @@ impl NamelessML3 {
     (v, state)
   }
 
-  // Rule::ELetRec =>  Regex::new(r"(.*)\|- let rec (.*?) = fun (.*?) -> (.*) in (.*) evalto (.*)").unwrap(),
+  // Rule::ELetRec =>  Regex::new(r"(.*)\|- let rec (.*?) = fun (.*?) -> (.*) in (.*) ==> (.*)").unwrap(),
   pub fn get_tree_trletrec(&self) -> (Option<RuleTree>, bool) {
     const OBJ: Object = Object::NamelessML3(Rule::TrLetRec);
 
@@ -128,11 +128,11 @@ impl NamelessML3 {
       let mut rhs_env = env.clone();
       rhs_env.push((cap[2].to_string(), Value::Variable()));
 
-      let val = format!("{} |- {} evalto {}", self.format_vectored_env(&lhs_env), &cap[4], &cap[6]);
+      let val = format!("{} |- {} ==> {}", self.format_vectored_env(&lhs_env), &cap[4], &cap[6]);
       let c = NamelessML3{obj: val}.solver();
       if let Some(c) = c {
         tp.push(c.clone());
-        let val = format!("{} |- {} evalto {}", self.format_vectored_env(&rhs_env), &cap[4], &cap[6]);
+        let val = format!("{} |- {} ==> {}", self.format_vectored_env(&rhs_env), &cap[5], &cap[7]);
         let c = NamelessML3{obj: val}.solver();
         if let Some(c) = c {
           tp.push(c.clone());

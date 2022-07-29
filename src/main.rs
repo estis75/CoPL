@@ -32,7 +32,10 @@ mod evalml3;
 #[allow(unused)]
 use evalml3::EvalML3;
 mod namelessml3;
+#[allow(unused)]
 use namelessml3::NamelessML3;
+mod evalnamelessml3;
+use evalnamelessml3::EvalNamelessML3;
 
 mod solver;
 use std::io::stdin;
@@ -53,7 +56,7 @@ fn main() {
   }
 
   let obj = obj.trim().to_string();
-  let tree = NamelessML3{obj: obj.clone()}.solve();
+  let tree = EvalNamelessML3{obj: obj.clone()}.solve();
   if let Some(n) = tree {
     println!("{}", n);
   }else{

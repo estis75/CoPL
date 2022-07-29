@@ -117,7 +117,7 @@ impl NamelessML3 {
   }
 
   //
-  // (val) |- hoge evalto huga
+  // (val) |- hoge ==> huga
   // のように与えてほしい
   //
   pub fn get_env(&self, val: String) -> Vec<(String, Value)> {
@@ -160,15 +160,27 @@ impl NamelessML3 {
 
   pub fn format_vectored_env(&self, mp: &Vec<(String, Value)>) -> String {
     let mut mpiter = mp.into_iter();
-    let head_of_head = mpiter.next();
+    let mut head_of_head = mpiter.next();
     if head_of_head == None {
       String::new()
     }else{
-      let head_of_head = head_of_head.unwrap();
-      let head = mpiter.into_iter()
-        .map(|(key, value)| if let Value::Variable() = value { format!("{}", key) }else{ format!("{} = {}", key, value) })
-        .fold(if let Value::Variable() = head_of_head.1 { format!("{}", head_of_head.0) }else{ format!("{} = {}", head_of_head.0, head_of_head.1) }, |lhs, rhs| lhs + ", " + &rhs);
-      head
+      while let Some(c) = head_of_head {
+        if &c.0 == "" {
+          head_of_head = mpiter.next()
+        }else{
+          break;
+        }
+      }
+      if head_of_head == None {
+        String::new()
+      }else{
+        let head_of_head = head_of_head.unwrap();
+        let head = mpiter.into_iter()
+          .map(|(key, value)| if let Value::Variable() = value { format!("{}", key) }else{ format!("{} = {}", key, value) })
+          .filter(|c| c != "") 
+          .fold(if let Value::Variable() = head_of_head.1 { format!("{}", head_of_head.0) }else{ format!("{} = {}", head_of_head.0, head_of_head.1) }, |lhs, rhs| lhs + ", " + &rhs);
+        head
+      }
     }
   }
   
@@ -370,17 +382,19 @@ impl NamelessML3 {
           rparsed1 + " in " + &self.unwrap_if_parened(cap[6].to_string())
         };
 
-        let val = format!("{} |- {} evalto {}", self.format_vectored_env(&env), &lparsed0, &rparsed0);
+        let val = format!("{} |- {} ==> {}", self.format_vectored_env(&env), &lparsed0, &rparsed0);
         let c = NamelessML3{obj: val}.solver();
         if let Some(c) = c {
           tp.push(c.clone());
-          let val = format!("{} |- {} evalto {}", self.format_vectored_env(&env), &lafter_in, &rafter_in);
+          let mut add_env = env.clone();
+          add_env.push((cap[2].to_string(), Value::Variable()));
+          let val = format!("{} |- {} ==> {}", self.format_vectored_env(&add_env), &lafter_in, &rafter_in);
           let c = NamelessML3{obj: val}.solver();
           if let Some(c) = c {
             tp.push(c.clone());
             v = Some(RuleTree{
               obj: OBJ,
-              val: format!("{} |- let {} = {} in {} ==> let . {} in {}", &cap[1].trim(), &cap[2], &lparsed0, &lafter_in, &rparsed0, &rafter_in),
+              val: format!("{} |- let {} = {} in {} ==> let . = {} in {}", self.format_vectored_env(&env), &cap[2], &lparsed0, &lafter_in, &rparsed0, &rafter_in),
               node: Some(tp)
             });
             state = true;
