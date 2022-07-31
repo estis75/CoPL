@@ -5,6 +5,7 @@ use super::{
   evalml1, evalml1err,
   evalml2, 
   evalml3, namelessml3, evalnamelessml3,
+  evalml4,
 };
 use regex::Regex;
 use std::fmt::{self, Display, Formatter};
@@ -23,6 +24,7 @@ pub enum Object {
   EvalML3(evalml3::Rule),
   NamelessML3(namelessml3::Rule),
   EvalNamelessML3(evalnamelessml3::Rule),
+  EvalML4(evalml4::Rule),
 }
 
 impl Display for Object {
@@ -40,6 +42,7 @@ impl Display for Object {
       Self::EvalML3(c) => write!(f, "{}", c),
       Self::NamelessML3(c) => write!(f, "{}", c),
       Self::EvalNamelessML3(c) => write!(f, "{}", c),
+      Self::EvalML4(c) => write!(f, "{}", c),
     }
   }
 }
